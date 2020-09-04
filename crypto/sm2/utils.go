@@ -10,7 +10,7 @@ import (
 	"github.com/tjfoc/gmsm/sm2"
 )
 
-func privKeyFromBytes(curve elliptic.Curve, pk []byte) (*sm2.PrivateKey, *sm2.PublicKey) {
+func PrivKeyFromBytes(curve elliptic.Curve, pk []byte) (*sm2.PrivateKey, *sm2.PublicKey) {
 	x, y := curve.ScalarBaseMult(pk)
 
 	priv := &sm2.PrivateKey{
@@ -37,7 +37,7 @@ func paddedAppend(size uint, dst, src []byte) []byte {
 	return append(dst, src...)
 }
 
-func deserialize(sigStr []byte) (*big.Int, *big.Int, error) {
+func Deserialize(sigStr []byte) (*big.Int, *big.Int, error) {
 	sig, err := btcec.ParseDERSignature(sigStr, sm2.P256Sm2())
 	if err != nil {
 		return nil, nil, err
@@ -46,7 +46,7 @@ func deserialize(sigStr []byte) (*big.Int, *big.Int, error) {
 	return sig.R, sig.S, nil
 }
 
-func parsePubKey(pubKeyStr []byte, curve elliptic.Curve) (key *sm2.PublicKey, err error) {
+func ParsePubKey(pubKeyStr []byte, curve elliptic.Curve) (key *sm2.PublicKey, err error) {
 	pubkey := sm2.PublicKey{}
 	pubkey.Curve = curve
 
@@ -67,7 +67,6 @@ func parsePubKey(pubKeyStr []byte, curve elliptic.Curve) (key *sm2.PublicKey, er
 	}
 	return &pubkey, nil
 }
-
 
 func canonicalizeInt(val *big.Int) []byte {
 	b := val.Bytes()

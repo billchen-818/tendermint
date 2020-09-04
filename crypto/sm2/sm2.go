@@ -29,7 +29,7 @@ func init() {
 	tmjson.RegisterType(PrivKeySM2{}, PrivKeyName)
 }
 
-type PrivKeySM2 [SM2PrivateKeyLength]byte
+type PrivKeySM2 []byte
 
 var _ crypto.PrivKey = PrivKeySM2{}
 
@@ -40,7 +40,7 @@ func (privkey PrivKeySM2) Bytes() []byte {
 }
 
 func (privkey PrivKeySM2) Sign(msg []byte) ([]byte, error) {
-	priv, _ := privKeyFromBytes(sm2.P256Sm2(), privkey[:])
+	priv, _ := PrivKeyFromBytes(sm2.P256Sm2(), privkey[:])
 	r, s, err := sm2.Sign(priv, crypto.Sm3Hash(msg))
 	if err != nil {
 		return nil, err
@@ -49,10 +49,10 @@ func (privkey PrivKeySM2) Sign(msg []byte) ([]byte, error) {
 }
 
 func (privkey PrivKeySM2) PubKey() crypto.PubKey {
-	_, pub := privKeyFromBytes(sm2.P256Sm2(), privkey[:])
-	var pubSM2 PubKeySM2
+	_, pub := PrivKeyFromBytes(sm2.P256Sm2(), privkey[:])
+	pubSM2 := make([]byte, SM2PublicKeyLength)
 	copy(pubSM2[:], sm2.Compress(pub))
-	return pubSM2
+	return PubKeySM2(pubSM2)
 }
 
 func (privkey PrivKeySM2) Equals(key crypto.PrivKey) bool {
@@ -70,12 +70,12 @@ func (privkey PrivKeySM2) Type() string {
 func GenPrivKey() PrivKeySM2 {
 	privKeyBytes := [SM2PrivateKeyLength]byte{}
 	copy(privKeyBytes[:], crypto.CRandBytes(SM2PrivateKeyLength))
-	priv, _ := privKeyFromBytes(sm2.P256Sm2(), privKeyBytes[:])
+	priv, _ := PrivKeyFromBytes(sm2.P256Sm2(), privKeyBytes[:])
 	copy(privKeyBytes[:], SerializePrivateKey(priv))
-	return PrivKeySM2(privKeyBytes)
+	return PrivKeySM2(privKeyBytes[:])
 }
 
-type PubKeySM2 [SM2PublicKeyLength]byte
+type PubKeySM2 []byte
 
 var _ crypto.PubKey = PubKeySM2{}
 
@@ -96,14 +96,14 @@ func (pubkey PubKeySM2) VerifySignature(msg []byte, sig []byte) bool {
 		pub = sm2.Decompress(pubkey[0:SM2PublicKeyCompressed])
 	} else {
 		var err error
-		pub, err = parsePubKey(pubkey[:], sm2.P256Sm2())
+		pub, err = ParsePubKey(pubkey[:], sm2.P256Sm2())
 		if err != nil {
 			fmt.Printf("parse pubkey failed\n")
 			return false
 		}
 	}
 
-	r, s, err := deserialize(sig)
+	r, s, err := Deserialize(sig)
 	if err != nil {
 		fmt.Printf("unmarshal sign failed")
 		return false
