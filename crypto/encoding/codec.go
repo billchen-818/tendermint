@@ -5,6 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/sm2"
 	pc "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
@@ -16,6 +17,12 @@ func PubKeyToProto(k crypto.PubKey) (pc.PublicKey, error) {
 		kp = pc.PublicKey{
 			Sum: &pc.PublicKey_Ed25519{
 				Ed25519: k,
+			},
+		}
+	case sm2.PubKey:
+		kp = pc.PublicKey{
+			Sum: &pc.PublicKey_Sm2{
+				Sm2: k,
 			},
 		}
 	default:
@@ -34,6 +41,14 @@ func PubKeyFromProto(k pc.PublicKey) (crypto.PubKey, error) {
 		}
 		pk := make(ed25519.PubKey, ed25519.PubKeySize)
 		copy(pk, k.Ed25519)
+		return pk, nil
+	case *pc.PublicKey_Sm2:
+		if len(k.Sm2) != sm2.PubKeySize {
+			return nil, fmt.Errorf("invalid size for PubKeySm2. Got %d, expected %d",
+				len(k.Sm2), sm2.PubKeySize)
+		}
+		pk := make(sm2.PubKey, sm2.PubKeySize)
+		copy(pk, k.Sm2)
 		return pk, nil
 	default:
 		return nil, fmt.Errorf("fromproto: key type %v is not supported", k)

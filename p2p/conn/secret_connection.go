@@ -22,8 +22,8 @@ import (
 	"golang.org/x/crypto/nacl/box"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
+	ed25519 "github.com/tendermint/tendermint/crypto/sm2"
 	"github.com/tendermint/tendermint/libs/async"
 	"github.com/tendermint/tendermint/libs/protoio"
 	tmsync "github.com/tendermint/tendermint/libs/sync"

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	ed25519 "github.com/tendermint/tendermint/crypto/sm2"
 	"github.com/tendermint/tendermint/libs/log"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 	tmrand "github.com/tendermint/tendermint/libs/rand"

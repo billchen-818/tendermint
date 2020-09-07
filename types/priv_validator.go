@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	ed25519 "github.com/tendermint/tendermint/crypto/sm2"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 

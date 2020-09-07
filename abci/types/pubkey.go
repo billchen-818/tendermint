@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
+	ed25519 "github.com/tendermint/tendermint/crypto/sm2"
 )
 
 const (
-	PubKeyEd25519 = "ed25519"
+	PubKeyEd25519 = "sm2"
 )
 
 func Ed25519ValidatorUpdate(pk []byte, power int64) ValidatorUpdate {
