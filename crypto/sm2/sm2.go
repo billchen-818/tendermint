@@ -11,13 +11,15 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
+var _ crypto.PrivKey = PrivKey{}
+
 const (
 	PrivKeyName = "tendermint/PrivKeySM2"
 	PubKeyName  = "tendermint/PubKeySM2"
 
-	SM2PrivateKeyLength    = 32
-	SM2PublicKeyLength     = 65
-	SM2PublicKeyCompressed = 33
+	PrivateKeySize       = 32
+	PubKeySize           = 65
+	PubKeySizeCompressed = 33
 
 	pubkeyUncompressed byte = 0x4
 
@@ -25,22 +27,18 @@ const (
 )
 
 func init() {
-	tmjson.RegisterType(PubKeySM2{}, PubKeyName)
-	tmjson.RegisterType(PrivKeySM2{}, PrivKeyName)
+	tmjson.RegisterType(PubKey{}, PubKeyName)
+	tmjson.RegisterType(PrivKey{}, PrivKeyName)
 }
 
-type PrivKeySM2 []byte
+type PrivKey []byte
 
-var _ crypto.PrivKey = PrivKeySM2{}
-
-func (privkey PrivKeySM2) Bytes() []byte {
-	s := make([]byte, SM2PrivateKeyLength)
-	copy(s, privkey[:])
-	return s
+func (privkey PrivKey) Bytes() []byte {
+	return []byte(privkey)
 }
 
-func (privkey PrivKeySM2) Sign(msg []byte) ([]byte, error) {
-	priv, _ := PrivKeyFromBytes(sm2.P256Sm2(), privkey[:])
+func (privkey PrivKey) Sign(msg []byte) ([]byte, error) {
+	priv, _ := PrivKeyFromBytes(sm2.P256Sm2(), privkey)
 	r, s, err := sm2.Sign(priv, crypto.Sm3Hash(msg))
 	if err != nil {
 		return nil, err
@@ -48,62 +46,62 @@ func (privkey PrivKeySM2) Sign(msg []byte) ([]byte, error) {
 	return Serialize(r, s), nil
 }
 
-func (privkey PrivKeySM2) PubKey() crypto.PubKey {
-	_, pub := PrivKeyFromBytes(sm2.P256Sm2(), privkey[:])
-	pubSM2 := make([]byte, SM2PublicKeyLength)
-	copy(pubSM2[:], sm2.Compress(pub))
-	return PubKeySM2(pubSM2)
+func (privkey PrivKey) PubKey() crypto.PubKey {
+	_, pub := PrivKeyFromBytes(sm2.P256Sm2(), privkey)
+	pubkey := make([]byte, PubKeySize)
+	copy(pubkey, sm2.Compress(pub))
+	return PubKey(pubkey)
 }
 
-func (privkey PrivKeySM2) Equals(key crypto.PrivKey) bool {
-	if otherSecp, ok := key.(PrivKeySM2); ok {
-		return bytes.Equal(privkey[:], otherSecp[:])
+func (privkey PrivKey) Equals(key crypto.PrivKey) bool {
+	if otherSecp, ok := key.(PrivKey); ok {
+		return bytes.Equal(privkey, otherSecp)
 	}
 
 	return false
 }
 
-func (privkey PrivKeySM2) Type() string {
+func (privkey PrivKey) Type() string {
 	return keyType
 }
 
-func GenPrivKey() PrivKeySM2 {
-	privKeyBytes := [SM2PrivateKeyLength]byte{}
-	copy(privKeyBytes[:], crypto.CRandBytes(SM2PrivateKeyLength))
+func GenPrivKey() PrivKey {
+	privKeyBytes := make([]byte, PrivateKeySize)
+	copy(privKeyBytes, crypto.CRandBytes(PrivateKeySize))
 
-	return PrivKeySM2(privKeyBytes[:])
+	return PrivKey(privKeyBytes)
 }
 
-func GenPrivKeyFromSecret(secret []byte) PrivKeySM2 {
+func GenPrivKeyFromSecret(secret []byte) PrivKey {
+	privKeyBytes := make([]byte, PrivateKeySize)
 	seed := crypto.Sm3Hash(secret)
-	privKeyBytes := [SM2PrivateKeyLength]byte{}
-	copy(privKeyBytes[:], seed)
+	copy(privKeyBytes, seed)
 
-	return PrivKeySM2(privKeyBytes[:])
+	return PrivKey(privKeyBytes)
 }
 
-type PubKeySM2 []byte
+type PubKey []byte
 
-var _ crypto.PubKey = PubKeySM2{}
+var _ crypto.PubKey = PubKey{}
 
-func (pubkey PubKeySM2) Address() crypto.Address {
-	if len(pubkey) != SM2PublicKeyLength {
+func (pubkey PubKey) Address() crypto.Address {
+	if len(pubkey) != PubKeySize {
 		panic("pubkey is incorrect size")
 	}
-	return crypto.Address(tmhash.SumTruncated(pubkey[:]))
+	return crypto.Address(tmhash.SumTruncated(pubkey))
 }
 
-func (pubkey PubKeySM2) Bytes() []byte {
-	return pubkey[:]
+func (pubkey PubKey) Bytes() []byte {
+	return []byte(pubkey)
 }
 
-func (pubkey PubKeySM2) VerifySignature(msg []byte, sig []byte) bool {
+func (pubkey PubKey) VerifySignature(msg []byte, sig []byte) bool {
 	var pub *sm2.PublicKey
 	if pubkey.isCompressed() {
-		pub = sm2.Decompress(pubkey[0:SM2PublicKeyCompressed])
+		pub = sm2.Decompress(pubkey[0:PubKeySizeCompressed])
 	} else {
 		var err error
-		pub, err = ParsePubKey(pubkey[:], sm2.P256Sm2())
+		pub, err = ParsePubKey(pubkey, sm2.P256Sm2())
 		if err != nil {
 			fmt.Printf("parse pubkey failed\n")
 			return false
@@ -119,17 +117,17 @@ func (pubkey PubKeySM2) VerifySignature(msg []byte, sig []byte) bool {
 	return sm2.Verify(pub, crypto.Sm3Hash(msg), r, s)
 }
 
-func (pubKey PubKeySM2) isCompressed() bool {
+func (pubKey PubKey) isCompressed() bool {
 	return pubKey[0] != pubkeyUncompressed
 }
 
-func (pubkey PubKeySM2) Equals(key crypto.PubKey) bool {
-	if otherSecp, ok := key.(PubKeySM2); ok {
-		return bytes.Equal(pubkey[:], otherSecp[:])
+func (pubkey PubKey) Equals(key crypto.PubKey) bool {
+	if otherSecp, ok := key.(PubKey); ok {
+		return bytes.Equal(pubkey, otherSecp)
 	}
 	return false
 }
 
-func (pubkey PubKeySM2) Type() string {
+func (pubkey PubKey) Type() string {
 	return keyType
 }

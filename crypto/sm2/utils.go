@@ -26,8 +26,8 @@ func PrivKeyFromBytes(curve elliptic.Curve, pk []byte) (*sm2.PrivateKey, *sm2.Pu
 }
 
 func SerializePrivateKey(p *sm2.PrivateKey) []byte {
-	b := make([]byte, 0, SM2PrivateKeyLength)
-	return paddedAppend(SM2PrivateKeyLength, b, p.D.Bytes())
+	b := make([]byte, 0, PrivateKeySize)
+	return paddedAppend(PrivateKeySize, b, p.D.Bytes())
 }
 
 func paddedAppend(size uint, dst, src []byte) []byte {
