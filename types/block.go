@@ -687,9 +687,9 @@ func (cs CommitSig) ValidateBasic() error {
 		if len(cs.Signature) == 0 {
 			return errors.New("signature is missing")
 		}
-		if len(cs.Signature) > MaxSignatureSize {
-			return fmt.Errorf("signature is too big (max: %d)", MaxSignatureSize)
-		}
+		// if len(cs.Signature) > MaxSignatureSize {
+		// 	return fmt.Errorf("signature is too big (max: %d)", MaxSignatureSize)
+		// }
 	}
 
 	return nil
