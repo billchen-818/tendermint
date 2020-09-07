@@ -15,7 +15,7 @@ const (
 	PrivKeyName = "tendermint/PrivKeySM2"
 	PubKeyName  = "tendermint/PubKeySM2"
 
-	SM2PrivateKeyLength = 32
+	SM2PrivateKeyLength    = 32
 	SM2PublicKeyLength     = 65
 	SM2PublicKeyCompressed = 33
 
@@ -70,8 +70,15 @@ func (privkey PrivKeySM2) Type() string {
 func GenPrivKey() PrivKeySM2 {
 	privKeyBytes := [SM2PrivateKeyLength]byte{}
 	copy(privKeyBytes[:], crypto.CRandBytes(SM2PrivateKeyLength))
-	priv, _ := PrivKeyFromBytes(sm2.P256Sm2(), privKeyBytes[:])
-	copy(privKeyBytes[:], SerializePrivateKey(priv))
+
+	return PrivKeySM2(privKeyBytes[:])
+}
+
+func GenPrivKeyFromSecret(secret []byte) PrivKeySM2 {
+	seed := crypto.Sm3Hash(secret)
+	privKeyBytes := [SM2PrivateKeyLength]byte{}
+	copy(privKeyBytes[:], seed)
+
 	return PrivKeySM2(privKeyBytes[:])
 }
 
