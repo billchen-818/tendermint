@@ -49,7 +49,7 @@ func (privkey PrivKey) Sign(msg []byte) ([]byte, error) {
 func (privkey PrivKey) PubKey() crypto.PubKey {
 	_, pub := PrivKeyFromBytes(sm2.P256Sm2(), privkey)
 	pubkey := make([]byte, PubKeySize)
-	copy(pubkey, sm2.Compress(pub))
+	copy(pubkey, SerializeUncompressed(pub))
 	return PubKey(pubkey)
 }
 
