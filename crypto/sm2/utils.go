@@ -30,6 +30,13 @@ func SerializePrivateKey(p *sm2.PrivateKey) []byte {
 	return paddedAppend(PrivateKeySize, b, p.D.Bytes())
 }
 
+func SerializeUncompressed(pub *sm2.PublicKey) []byte {
+	b := make([]byte, 0, PubKeySize)
+	b = append(b, pubkeyUncompressed)
+	b = paddedAppend(32, b, pub.X.Bytes())
+	return paddedAppend(32, b, pub.Y.Bytes())
+}
+
 func paddedAppend(size uint, dst, src []byte) []byte {
 	for i := 0; i < int(size)-len(src); i++ {
 		dst = append(dst, 0)
